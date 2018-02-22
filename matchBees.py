@@ -7,8 +7,8 @@ import numpy as np
 import cv2 as cv # opencv 3.4.0
 
 # read in images
-single_bee_color = cv.imread('./img/singleCleanBee.png')
-comb_bee_color = cv.imread('./img/combBee.png')
+single_bee_color = cv.imread('./img/singleBee.png')
+comb_bee_color = cv.imread('./img/singleCombBee.png')
 
 # convert to grayscale
 single_bee_gray = cv.cvtColor(single_bee_color, cv.COLOR_BGR2GRAY)
@@ -24,8 +24,17 @@ orb = cv.ORB_create()
 keypoint_single, descriptor_single = orb.detectAndCompute(single_bee_gray, None)
 keypoint_comb, descriptor_comb = orb.detectAndCompute(comb_bee_gray, None)
 
-kp_single_bee = cv.drawKeypoints(single_bee_gray, keypoint_single, None, color=(0,255,0), flags=0)
-plt.imshow(kp_single_bee), plt.show()
+# draw and show keypoints on images
+# kp_single_bee = cv.drawKeypoints(single_bee_gray, keypoint_single, None, color=(0,255,0), flags=0)
+# kp_comb_bee = cv.drawKeypoints(comb_bee_gray, keypoint_comb, None, color=(0,255,0), flags=0)
+# plt.imshow(kp_comb_bee), plt.show()
 
+# orb match, then sort by distance
+matcher = cv.BFMatcher(cv.NORM_HAMMING, crossCheck=True)
+matches = matcher.match(descriptor_single, descriptor_comb)
+matches = sorted(matches, key = lambda x:x.distance)
 
-# matcher = cv2.BFMatcher()
+# draw top ten
+matches_drawn = cv.drawMatches(single_bee_gray, keypoint_single, comb_bee_gray, keypoint_comb, matches[:30], None, flags=2)
+plt.imshow(matches_drawn), plt.show()
+

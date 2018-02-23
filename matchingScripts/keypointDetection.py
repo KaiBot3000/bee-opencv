@@ -3,12 +3,14 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt 
 
+import os
 import numpy as np
 import cv2 as cv # opencv 3.4.0
 
 # read in images
-single_bee_color = cv.imread('./img/singleBee.png')
-comb_bee_color = cv.imread('./img/singleCombBee.png')
+dir_name = os.path.dirname(__file__)
+single_bee_color = cv.imread(os.path.join(dir_name, '../img/singleBee.png'))
+comb_bee_color = cv.imread(os.path.join(dir_name, '../img/singleCombBee.png'))
 
 # convert to grayscale
 single_bee_gray = cv.cvtColor(single_bee_color, cv.COLOR_BGR2GRAY)
@@ -37,4 +39,3 @@ matches = sorted(matches, key = lambda x:x.distance)
 # draw top ten
 matches_drawn = cv.drawMatches(single_bee_gray, keypoint_single, comb_bee_gray, keypoint_comb, matches[:30], None, flags=2)
 plt.imshow(matches_drawn), plt.show()
-

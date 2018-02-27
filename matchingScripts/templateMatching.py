@@ -13,9 +13,9 @@ def supressNonMaxima(boxes, overlapThreshold):
     if len(boxes) == 0:
         return []
 
-    # # check for integers
-    # if np.boxes.dtype.kind == 'i':
-    #     boxes = np.boxes.astype('float')
+    # check for integers
+    if boxes.dtype.kind == 'i':
+        boxes = boxes.astype('float')
 
     # boxes we'll keep
     pick = []
@@ -39,10 +39,10 @@ def supressNonMaxima(boxes, overlapThreshold):
         xx1 = np.maximum(x1[i], x1[idxs[:last]])
         yy1 = np.maximum(y1[i], y1[idxs[:last]])
         xx2 = np.maximum(x2[i], x2[idxs[:last]])
-        yy1 = np.maximum(y2[i], y2[idxs[:last]])
+        yy2 = np.maximum(y2[i], y2[idxs[:last]])
 
         # get dimensions of metabox
-        w = np.maximun(0, xx2 - xx1 + 1)
+        w = np.maximum(0, xx2 - xx1 + 1)
         h = np.maximum(0, yy2 - yy1 + 1)
 
         # get overlap
@@ -101,44 +101,37 @@ if __name__ == '__main__':
     MATCH_THRESHOLD = 80000000 # min: 79277216.0, max: 146592384.0
     NMS_THRESHOLD = 0.0
     matches = np.where(result <= MATCH_THRESHOLD)
-    print 'matches:', len(matches[0])
-    boxes_unduped = np.array([])
-    # boxes_unduped = []
+    boxes_unduped = []
     # unzip matches into points and add to boxlist
     for match in zip(*matches[::-1]):
-        print 'match:', match
         top_left = match
         bottom_right = (match[0] + w, match[1] + h)
-        box = np.array([top_left[0], top_left[1], bottom_right[0], bottom_right[1]])
-        print 'box to add:', box
-        boxes_unduped = np.concatenate(boxes_unduped, box)
+        boxes_unduped.append([top_left[0], top_left[1], bottom_right[0], bottom_right[1]])
 
-    # boxes = supressNonMaxima(boxes_unduped, NMS_THRESHOLD)
-    boxes = boxes_unduped
-    print boxes
-
-    for box in boxes:
-        print 'hi'
-        print 'box:', box
-        cv.rectangle(comb_color, (box[0], box[1]), (box[2], box[3]), 255, 2)
+    # keep only the best box from similar boxes
+    boxes = supressNonMaxima(np.array(boxes_unduped), NMS_THRESHOLD)
 
     ### Show results
+
+    # draw boxes
+    for box in boxes:
+        cv.rectangle(comb_color, (box[0], box[1]), (box[2], box[3]), 255, 2)
 
     # add some headspace between plots
     plt.subplots_adjust(hspace=0.5)
 
-    # row, column, order (weird)
-    # plt.subplot(411), plt.imshow(single_gray,cmap='gray')
-    # plt.title('Template'), plt.xticks([]), plt.yticks([])
+    # subplot takes row, column, order (weird)
+    plt.subplot(411), plt.imshow(single_gray,cmap='gray')
+    plt.title('Template'), plt.xticks([]), plt.yticks([])
 
-    # plt.subplot(412), plt.imshow(mask,cmap='gray')
-    # plt.title('Mask'), plt.xticks([]), plt.yticks([])
+    plt.subplot(412), plt.imshow(mask,cmap='gray')
+    plt.title('Mask'), plt.xticks([]), plt.yticks([])
 
-    # plt.subplot(413), plt.imshow(result,cmap='gray')
-    # plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
+    plt.subplot(413), plt.imshow(result,cmap='gray')
+    plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
 
     # plt and cv store images in reverse color: rgb v. bgr, so convert:
-    plt.subplot(111), plt.imshow(cv.cvtColor(comb_color, cv.COLOR_BGR2RGB))
+    plt.subplot(414), plt.imshow(cv.cvtColor(comb_color, cv.COLOR_BGR2RGB))
     plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
 
     plt.show()
